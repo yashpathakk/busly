@@ -2,16 +2,16 @@ from tkinter import *
 from tkinter import messagebox
 
 
-# -------------------------
+
 # Register Button Function
-# -------------------------
+
 def register_passenger():
     messagebox.showinfo("Registration", "Register button clicked!")
 
 
-# -------------------------
+
 # Clear Button Function
-# -------------------------
+
 def clear_fields():
     entry_name.delete(0, END)
     entry_age.delete(0, END)
@@ -22,18 +22,18 @@ def clear_fields():
     entry_confirm_password.delete(0, END)
 
 
-# -------------------------
+
 # Main Window
-# -------------------------
+
 root = Tk()
 root.title("Busly - Passenger Registration")
 root.geometry("500x550")
 root.resizable(False, False)
 
 
-# -------------------------
+
 # Heading
-# -------------------------
+
 heading = Label(
     root,
     text="Passenger Registration",
@@ -42,9 +42,9 @@ heading = Label(
 heading.pack(pady=15)
 
 
-# -------------------------
+
 # Registration Form Frame
-# -------------------------
+
 form_frame = Frame(root)
 form_frame.pack(pady=10)
 
@@ -85,9 +85,9 @@ entry_confirm_password = Entry(form_frame, width=30, show="*")
 entry_confirm_password.grid(row=6, column=1)
 
 
-# -------------------------
+
 # Buttons
-# -------------------------
+
 button_frame = Frame(root)
 button_frame.pack(pady=25)
 
