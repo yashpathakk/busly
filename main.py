@@ -20,7 +20,7 @@ title_label=tk.Label(
     text="Busly",
     font=("Arial",32,"bold"),
     fg="blue",
-    bg="white"
+    bg="white",
 )
 
 title_label.pack(pady=(40,5))
@@ -37,4 +37,15 @@ subtitle_label=tk.Label(
 )
 
 subtitle_label.pack(pady=(0,30))
+
+#Welcome 
+
+welcome_label=tk.Label(
+    root,
+    text="Welcome to Busly!",
+    font=("Arial",20,"bold"),
+    fg="black",
+    bg="white"
+)
+welcome_label.pack(pady=20)
 root.mainloop()
