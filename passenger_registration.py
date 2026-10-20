@@ -1,172 +1,135 @@
 
-from tkinter import *
+import tkinter as tk
 from tkinter import messagebox
 
 from db_connection import connect_database
-
-
-# Register Passenger Function
-
-def register_passenger():
-    name = entry_name.get().strip()
-    age = entry_age.get().strip()
-    gender = entry_gender.get().strip()
-    phone = entry_phone.get().strip()
-
-    if name == "" or age == "" or gender == "" or phone == "":
-        messagebox.showwarning("Registration", "Please fill all fields.")
-        return
-
-    if len(name) > 20:
-        messagebox.showwarning("Registration", "Name must be within 20 characters.")
-        return
-
-    if not age.isdigit() or int(age) <= 0:
-        messagebox.showwarning("Registration", "Enter a valid age.")
-        return
-
-    if gender not in ("Male", "Female"):
-        messagebox.showwarning("Registration", "Enter Male or Female.")
-        return
-
-    if not phone.isdigit() or len(phone) > 15:
-        messagebox.showwarning("Registration", "Enter a valid phone number.")
-        return
-
-    conn = connect_database()
-
-    if conn is None:
-        messagebox.showerror("Database", "Could not connect to database.")
-        return
-
-    cursor = None
-
-    try:
-        cursor = conn.cursor()
-
-        query = """
-        INSERT INTO PASSENGER
-        (full_name, phone, age, gender)
-        VALUES (%s, %s, %s, %s)
-        """
-
-        values = (name, phone, int(age), gender)
-
-        cursor.execute(query, values)
-        conn.commit()
-
-        messagebox.showinfo(
-            "Registration",
-            "Passenger registered successfully!"
-        )
-
-        clear_fields()
-
-    except Exception as e:
-        conn.rollback()
-        messagebox.showerror(
-            "Registration Error",
-            "Registration failed. Check the phone number or database."
-        )
-        print("Database error:", e)
-
-    finally:
-        if cursor is not None:
-            cursor.close()
-        conn.close()
-
-
-# Clear Fields Function
-
-def clear_fields():
-    entry_name.delete(0, END)
-    entry_age.delete(0, END)
-    entry_gender.delete(0, END)
-    entry_phone.delete(0, END)
-
-
-# Main Window
-
-root = Tk()
-root.title("Busly - Passenger Registration")
-root.geometry("500x400")
-root.resizable(False, False)
-
-
-# Heading
-
-heading = Label(
-    root,
-    text="Passenger Registration",
-    font=("Arial", 18, "bold")
-)
-heading.pack(pady=20)
-
-
-# Registration Form
-
-form_frame = Frame(root)
-form_frame.pack(pady=10)
-
-
-# Passenger Name
-
-Label(form_frame, text="Passenger Name").grid(
-    row=0, column=0, padx=10, pady=10, sticky="w"
+from ui_helpers import (
+    PANEL, make_window, heading,
+    make_label, make_entry, make_button
 )
 
-entry_name = Entry(form_frame, width=30)
-entry_name.grid(row=0, column=1)
 
+# Passenger Registration Window
 
-# Age
+def open_registration():
 
-Label(form_frame, text="Age").grid(
-    row=1, column=0, padx=10, pady=10, sticky="w"
-)
+    win = make_window("Busly | Registration", "650x570")
+    heading(win, "Passenger Registration", "Create your passenger record")
 
-entry_age = Entry(form_frame, width=30)
-entry_age.grid(row=1, column=1)
+    # Registration Form
 
+    form = tk.Frame(win, bg=PANEL, padx=35, pady=25)
+    form.pack(padx=70, fill="x")
 
-# Gender
+    make_label(form, "Full Name:").grid(
+        row=0, column=0, sticky="w", pady=12
+    )
+    name_entry = make_entry(form)
+    name_entry.grid(row=0, column=1, padx=12, ipady=5)
 
-Label(form_frame, text="Gender (Male/Female)").grid(
-    row=2, column=0, padx=10, pady=10, sticky="w"
-)
+    make_label(form, "Phone Number:").grid(
+        row=1, column=0, sticky="w", pady=12
+    )
+    phone_entry = make_entry(form)
+    phone_entry.grid(row=1, column=1, padx=12, ipady=5)
 
-entry_gender = Entry(form_frame, width=30)
-entry_gender.grid(row=2, column=1)
+    make_label(form, "Age:").grid(
+        row=2, column=0, sticky="w", pady=12
+    )
+    age_entry = make_entry(form)
+    age_entry.grid(row=2, column=1, padx=12, ipady=5)
 
+    make_label(form, "Gender:").grid(
+        row=3, column=0, sticky="w", pady=12
+    )
 
-# Phone Number
+    gender = tk.StringVar(value="Male")
+    gender_menu = tk.OptionMenu(
+        form, gender, "Male", "Female"
+    )
+    gender_menu.config(
+        bg="#374151", fg="white",
+        activebackground="#0F766E",
+        relief="flat", highlightthickness=0
+    )
+    gender_menu["menu"].config(bg="#374151", fg="white")
+    gender_menu.grid(row=3, column=1, sticky="ew", padx=12)
 
-Label(form_frame, text="Phone Number").grid(
-    row=3, column=0, padx=10, pady=10, sticky="w"
-)
+    # Save Passenger
 
-entry_phone = Entry(form_frame, width=30)
-entry_phone.grid(row=3, column=1)
+    def register_passenger():
 
+        name = name_entry.get().strip()
+        phone = phone_entry.get().strip()
+        age = age_entry.get().strip()
 
-# Buttons
+        if not name or not phone or not age:
+            messagebox.showwarning(
+                "Missing Details", "Fill in every field.", parent=win
+            )
+            return
 
-button_frame = Frame(root)
-button_frame.pack(pady=20)
+        if len(name) > 20:
+            messagebox.showwarning(
+                "Name Too Long", "Name must be 20 characters or fewer.",
+                parent=win
+            )
+            return
 
-Button(
-    button_frame,
-    text="Register",
-    width=15,
-    command=register_passenger
-).grid(row=0, column=0, padx=10)
+        if not phone.isdigit() or not 7 <= len(phone) <= 15:
+            messagebox.showwarning(
+                "Invalid Phone", "Enter a valid phone number.",
+                parent=win
+            )
+            return
 
-Button(
-    button_frame,
-    text="Clear",
-    width=15,
-    command=clear_fields
-).grid(row=0, column=1, padx=10)
+        if not age.isdigit() or not 1 <= int(age) <= 100:
+            messagebox.showwarning(
+                "Invalid Age", "Enter a valid age.", parent=win
+            )
+            return
 
+        conn = connect_database()
+        if conn is None:
+            messagebox.showerror(
+                "Database Error", "Could not connect to database.",
+                parent=win
+            )
+            return
 
-root.mainloop()
+        cursor = None
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO PASSENGER (full_name, phone, age, gender)
+                VALUES (%s, %s, %s, %s)
+            """, (name, phone, int(age), gender.get()))
+
+            conn.commit()
+            messagebox.showinfo(
+                "Registered", "Passenger registered successfully.",
+                parent=win
+            )
+
+            name_entry.delete(0, tk.END)
+            phone_entry.delete(0, tk.END)
+            age_entry.delete(0, tk.END)
+
+        except Exception as error:
+            conn.rollback()
+            messagebox.showerror(
+                "Registration Error",
+                "Could not register passenger. The phone number may "
+                "already be registered.\n\n" + str(error),
+                parent=win
+            )
+        finally:
+            if cursor:
+                cursor.close()
+            conn.close()
+
+    # Register Button
+
+    make_button(
+        form, "Register Passenger", register_passenger
+    ).grid(row=4, column=0, columnspan=2, pady=20, ipadx=12)

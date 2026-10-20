@@ -1,25 +1,24 @@
+
 import mysql.connector
 from mysql.connector import Error
 
 
+# Connect to Busly Database
+
 def connect_database():
+
     try:
-        connection = mysql.connector.connect(
+        conn = mysql.connector.connect(
             host="localhost",
             user="root",
             password="pathak0101",
             database="busly"
         )
 
-        if connection.is_connected():
-            print("Connected to Busly database successfully!")
-            return connection
+        if conn.is_connected():
+            return conn
 
-    except Error as e:
-        print("Database Connection Error:", e)
-        return None
+    except Error as error:
+        print("Database connection error:", error)
 
-def close_database(connection):
-    if connection is not None and connection.is_connected():
-        connection.close()
-        print("Database connection closed.")
+    return None

@@ -2,98 +2,83 @@
 import tkinter as tk
 from tkinter import messagebox
 
-
-# Login Function
-
-def passenger_login():
-    email = entry_email.get()
-    password = entry_password.get()
-
-    if email == "" or password == "":
-        messagebox.showwarning(
-            "Login",
-            "Please fill all the fields."
-        )
-    else:
-        messagebox.showinfo(
-            "Login",
-            "Passenger Login Successful!"
-        )
+from db_connection import connect_database
+from ui_helpers import (
+    PANEL, make_window, heading,
+    make_label, make_entry, make_button
+)
 
 
-# Clear Function
-
-def clear_fields():
-    entry_email.delete(0, tk.END)
-    entry_password.delete(0, tk.END)
-
-
-# Open Passenger Login Window
+# Passenger Login Window
 
 def open_login():
 
-    global entry_email, entry_password
+    win = make_window("Busly | Passenger Login", "550x400")
+    heading(win, "Passenger Login", "Access your passenger account")
 
-    login_window = tk.Toplevel()
-    login_window.title("Busly - Passenger Login")
-    login_window.geometry("400x300")
-    login_window.resizable(False, False)
+    # Login Form
 
-    # Heading
+    form = tk.Frame(win, bg=PANEL, padx=30, pady=25)
+    form.pack(padx=65, fill="x")
 
-    heading = tk.Label(
-        login_window,
-        text="Passenger Login",
-        font=("Arial", 18, "bold")
+    make_label(form, "Registered Phone:").grid(
+        row=0, column=0, sticky="w", pady=15
     )
-    heading.pack(pady=20)
+    phone_entry = make_entry(form)
+    phone_entry.grid(row=0, column=1, padx=10, ipady=5)
 
-    # Login Frame
+    # Verify Passenger
 
-    login_frame = tk.Frame(login_window)
-    login_frame.pack(pady=10)
+    def login():
 
-    # Email
+        phone = phone_entry.get().strip()
+        if not phone:
+            messagebox.showwarning(
+                "Missing Phone", "Enter your registered phone number.",
+                parent=win
+            )
+            return
 
-    tk.Label(
-        login_frame,
-        text="Email ID",
-        font=("Arial", 11)
-    ).grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        conn = connect_database()
+        if conn is None:
+            messagebox.showerror(
+                "Database Error", "Could not connect to database.",
+                parent=win
+            )
+            return
 
-    entry_email = tk.Entry(login_frame, width=25)
-    entry_email.grid(row=0, column=1)
+        cursor = None
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT full_name FROM PASSENGER WHERE phone = %s",
+                (phone,)
+            )
+            passenger = cursor.fetchone()
 
-    # Password
+            if passenger:
+                messagebox.showinfo(
+                    "Login Successful",
+                    f"Welcome, {passenger[0]}!",
+                    parent=win
+                )
+                win.destroy()
+            else:
+                messagebox.showwarning(
+                    "Passenger Not Found",
+                    "Please register before logging in.",
+                    parent=win
+                )
 
-    tk.Label(
-        login_frame,
-        text="Password",
-        font=("Arial", 11)
-    ).grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        except Exception as error:
+            messagebox.showerror("Error", str(error), parent=win)
+        finally:
+            if cursor:
+                cursor.close()
+            conn.close()
 
-    entry_password = tk.Entry(
-        login_frame,
-        width=25,
-        show="*"
-    )
-    entry_password.grid(row=1, column=1)
+    # Login Button
 
-    # Buttons
-
-    button_frame = tk.Frame(login_window)
-    button_frame.pack(pady=20)
-
-    tk.Button(
-        button_frame,
-        text="Login",
-        width=12,
-        command=passenger_login
-    ).grid(row=0, column=0, padx=10)
-
-    tk.Button(
-        button_frame,
-        text="Clear",
-        width=12,
-        command=clear_fields
-    ).grid(row=0, column=1, padx=10)
+    make_button(
+        form, "Login", login
+    ).grid(row=1, column=0, columnspan=2, pady=20, ipadx=20)
